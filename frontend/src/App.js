@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "./App.css";
 
+const API_URL = "https://technova-backend-5hkq.onrender.com";
+
 const SUGGESTED_QUESTIONS = [
   "Who is the president of the club?",
   "Best performer yaaru?",
@@ -21,7 +23,7 @@ function App() {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    axios.get("http://localhost:8000/stats")
+    axios.get(`${API_URL}/stats`)
       .then(res => setStats(res.data))
       .catch(err => console.log(err));
   }, []);
@@ -40,7 +42,7 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:8000/ask", { question });
+      const res = await axios.post(`${API_URL}/ask`, { question });
       setMessages(prev => [...prev, {
         role: "agent",
         content: res.data.answer,
