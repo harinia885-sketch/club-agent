@@ -1,0 +1,135 @@
+{
+  "achievements": [
+    {
+      "id": 1,
+      "title": "Best Leader Award 2024",
+      "winner": "Rahul Kumar",
+      "category": "Leadership",
+      "level": "College",
+      "date": "2024-09-20",
+      "awarded_by": "PSG College",
+      "description": "Recognized for outstanding leadership in club management"
+    },
+    {
+      "id": 2,
+      "title": "Best Designer Award 2024",
+      "winner": "Priya Sharma",
+      "category": "Design",
+      "level": "College",
+      "date": "2024-09-20",
+      "awarded_by": "TechNova Club",
+      "description": "Exceptional UI/UX design contributions"
+    },
+    {
+      "id": 3,
+      "title": "Hackathon Winner 2024",
+      "winner": "Arun S",
+      "category": "Technical",
+      "level": "National",
+      "date": "2024-03-15",
+      "awarded_by": "Smart India Hackathon",
+      "description": "1st place in national level hackathon"
+    },
+    {
+      "id": 4,
+      "title": "Hackathon Winner 2023",
+      "winner": "Arun S",
+      "category": "Technical",
+      "level": "State",
+      "date": "2023-03-10",
+      "awarded_by": "TN Tech Hackathon",
+      "description": "1st place in state level hackathon"
+    },
+    {
+      "id": 5,
+      "title": "Hackathon Winner 2022",
+      "winner": "Arun S",
+      "category": "Technical",
+      "level": "College",
+      "date": "2022-03-08",
+      "awarded_by": "PSG Hackathon",
+      "description": "1st place in college hackathon"
+    },
+    {
+      "id": 6,
+      "title": "Best Secretary Award 2024",
+      "winner": "Meena R",
+      "category": "Management",
+      "level": "College",
+      "date": "2024-09-20",
+      "awarded_by": "PSG College",
+      "description": "Best club management and coordination"
+    },
+    {
+      "id": 7,
+      "title": "Smart India Hackathon Finalist",
+      "winner": "Rahul Kumar",
+      "category": "Technical",
+      "level": "National",
+      "date": "2024-08-15",
+      "awarded_by": "Government of India",
+      "description": "Top 10 finalist in national hackathon"
+    },
+    {
+      "id": 8,
+      "title": "Best Frontend Developer 2024",
+      "winner": "Sneha P",
+      "category": "Technical",
+      "level": "College",
+      "date": "2024-09-20",
+      "awarded_by": "TechNova Club",
+      "description": "Outstanding frontend development skills"
+    },
+    {
+      "id": 9,
+      "title": "Best Freshman Award 2024",
+      "winner": "Ravi T",
+      "category": "General",
+      "level": "Club",
+      "date": "2024-09-20",
+      "awarded_by": "TechNova Club",
+      "description": "Most promising first year member"
+    },
+    {
+      "id": 10,
+      "title": "Most Enthusiastic Member 2024",
+      "winner": "Nithya V",
+      "category": "General",
+      "level": "Club",
+      "date": "2024-09-20",
+      "awarded_by": "TechNova Club",
+      "description": "Highest participation and energy in all events"
+    },
+    {
+      "id": 11,
+      "title": "GitHub Campus Expert",
+      "winner": "Arun S",
+      "category": "Technical",
+      "level": "International",
+      "date": "2024-01-10",
+      "awarded_by": "GitHub",
+      "description": "Selected as GitHub Campus Expert for PSG College"
+    },
+    {
+      "id": 12,
+      "title": "AI Project Award 2024",
+      "winner": "Ananya R",
+      "category": "Technical",
+      "level": "College",
+      "date": "2024-09-20",
+      "awarded_by": "PSG College",
+      "description": "Best AI/ML project developed during bootcamp"
+    }
+  ],
+  "club_stats": {
+    "total_events": 10,
+    "total_members": 15,
+    "active_members": 12,
+    "inactive_members": 3,
+    "average_attendance": 78,
+    "total_awards": 12,
+    "national_level_wins": 3,
+    "state_level_wins": 1,
+    "college_level_wins": 8
+  }
+}
