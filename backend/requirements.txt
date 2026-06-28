@@ -5,4 +5,4 @@ python-dotenv
 google-adk
 litellm
 qdrant-client
-sentence-transformers
+requests

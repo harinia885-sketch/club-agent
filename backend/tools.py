@@ -1,25 +1,65 @@
 import json
 import os
+import time
+import requests
 from dotenv import load_dotenv
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-from sentence_transformers import SentenceTransformer
 
 load_dotenv()
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Embeddings via HuggingFace Inference API (no local model load,
+# keeps RAM usage tiny so this fits in Render's free 512MB tier)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HF_TOKEN = os.getenv("HF_TOKEN")
+if not HF_TOKEN:
+    raise RuntimeError("HF_TOKEN not set in .env. Get a free token at https://huggingface.co/settings/tokens")
 
-QDRANT_URL = os.getenv("QDRANT_URL")
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
+HF_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+HF_API_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL_ID}/pipeline/feature-extraction"
+HF_HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-if not QDRANT_URL or not QDRANT_API_KEY:
-    raise RuntimeError(
-        "QDRANT_URL and QDRANT_API_KEY must be set in .env (Qdrant Cloud credentials)."
-    )
+
+def get_embedding(text: str, retries: int = 3) -> list:
+    """Get a sentence embedding from HuggingFace's hosted inference API."""
+    payload = {"inputs": text, "options": {"wait_for_model": True}}
+
+    for attempt in range(retries):
+        response = requests.post(HF_API_URL, headers=HF_HEADERS, json=payload, timeout=30)
+
+        if response.status_code == 200:
+            output = response.json()
+            # Output can be a flat vector, or a list of token vectors that need pooling
+            if isinstance(output, list) and len(output) > 0:
+                first = output[0]
+                if isinstance(first, list):
+                    # token-level vectors -> mean-pool into a single sentence vector
+                    dim = len(first)
+                    pooled = [0.0] * dim
+                    for token_vec in output:
+                        for i, v in enumerate(token_vec):
+                            pooled[i] += v
+                    pooled = [v / len(output) for v in pooled]
+                    return pooled
+                else:
+                    # already a flat vector
+                    return output
+            raise RuntimeError(f"Unexpected embedding format: {output}")
+
+        # Model loading on HF's side -- wait and retry
+        if response.status_code == 503:
+            time.sleep(3)
+            continue
+
+        raise RuntimeError(f"HF API error {response.status_code}: {response.text}")
+
+    raise RuntimeError("HF API did not return a valid embedding after retries.")
+
 
 client = QdrantClient(
-    url=QDRANT_URL,
-    api_key=QDRANT_API_KEY,
+    url=os.getenv("QDRANT_URL"),
+    api_key=os.getenv("QDRANT_API_KEY"),
 )
 
 with open("../data/members.json", "r") as f:
@@ -34,7 +74,7 @@ with open("../data/achievements.json", "r") as f:
 def setup_qdrant():
     collections = client.get_collections().collections
     names = [c.name for c in collections]
-    
+
     if "club_members" not in names:
         client.create_collection(
             collection_name="club_members",
@@ -43,7 +83,7 @@ def setup_qdrant():
                 distance=Distance.COSINE
             )
         )
-        
+
         points = []
         for member in members_data["members"]:
             text = f"""
@@ -56,18 +96,18 @@ def setup_qdrant():
             Status: {member['status']}.
             Performance score: {member['performance_score']}.
             """
-            vector = model.encode(text).tolist()
+            vector = get_embedding(text)
             points.append(PointStruct(
                 id=member['id'],
                 vector=vector,
                 payload=member
             ))
-        
+
         client.upsert(
             collection_name="club_members",
             points=points
         )
-    
+
     return client
 
 qdrant = setup_qdrant()
@@ -77,18 +117,18 @@ qdrant = setup_qdrant()
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def search_members(query: str) -> str:
     """Search members using semantic search"""
-    
-    query_vector = model.encode(query).tolist()
-    
+
+    query_vector = get_embedding(query)
+
     results = qdrant.query_points(
         collection_name="club_members",
         query=query_vector,
         limit=5
     ).points
-    
+
     if not results:
         return "No members found."
-    
+
     members_found = []
     for r in results:
         p = r.payload
@@ -105,7 +145,7 @@ def search_members(query: str) -> str:
             "status": p["status"],
             "performance_score": p["performance_score"]
         })
-    
+
     return json.dumps(members_found, indent=2)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -113,9 +153,9 @@ def search_members(query: str) -> str:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def analyze_performance(filter_type: str = "all") -> str:
     """Analyze member performance"""
-    
+
     members = members_data["members"]
-    
+
     if filter_type == "top":
         filtered = sorted(
             members,
@@ -162,7 +202,7 @@ def analyze_performance(filter_type: str = "all") -> str:
             for m in filtered
         ]
     }
-    
+
     return json.dumps(analysis, indent=2)
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -170,7 +210,7 @@ def analyze_performance(filter_type: str = "all") -> str:
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 def get_recommendations(recommendation_type: str) -> str:
     """Get smart recommendations"""
-    
+
     members = members_data["members"]
     events = events_data["events"]
     achievements = achievements_data["achievements"]
@@ -185,7 +225,7 @@ def get_recommendations(recommendation_type: str) -> str:
             ),
             reverse=True
         )[:3]
-        
+
         result = {
             "type": "Next President Recommendation",
             "top_candidates": [
@@ -273,9 +313,9 @@ def get_recommendations(recommendation_type: str) -> str:
 if __name__ == "__main__":
     print("Testing Tool 1 - Search Members:")
     print(search_members("who is the president"))
-    
+
     print("\nTesting Tool 2 - Top Performers:")
     print(analyze_performance("top"))
-    
+
     print("\nTesting Tool 3 - Best Performer Recommendation:")
     print(get_recommendations("best_performer"))
